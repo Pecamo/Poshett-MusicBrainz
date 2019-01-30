@@ -1,5 +1,3 @@
-import { resolve } from 'url';
-
 const NodeBrainz = require('nodebrainz');
 const CoverArt = require('coverart');
 const VERSION = '0.1'
