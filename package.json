@@ -1,0 +1,25 @@
+{
+  "name": "poshett-musicbrainz",
+  "version": "1.0.0",
+  "description": "MusicBrainz interface for Poshett",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pecamo/Poshett-MusicBrainz.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pecamo/Poshett-MusicBrainz/issues"
+  },
+  "homepage": "https://github.com/Pecamo/Poshett-MusicBrainz#readme",
+  "dependencies": {
+    "commander": "^2.19.0",
+    "coverart": "0.0.1",
+    "image-size": "^0.7.1",
+    "nodebrainz": "^2.1.1"
+  }
+}
