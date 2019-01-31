@@ -1,12 +1,13 @@
 const NodeBrainz = require('nodebrainz');
 const CoverArt = require('coverart');
+const PoshettWeb = require('../Poshett-web/dist').default;
 const VERSION = '0.1'
 
 const USER_AGENT = `poshett/${VERSION} (https://github.com/Pecamo/Poshett-MusicBrainz)`;
 const nb = new NodeBrainz({ userAgent: USER_AGENT });
 const ca = new CoverArt({ userAgent: USER_AGENT });
 
-export function getCover(title, artist) {
+function getCover(title, artist) {
 	const orderedTypes = [
 		'Track',
 		'Front',
@@ -28,7 +29,7 @@ export function getCover(title, artist) {
 		}
 	}
 
-	let promise = new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		nb.search('recording', { recording: title, artist: artist, limit: 3 }, (err, response) => {
 			if (err) {
 				reject(err);
@@ -65,6 +66,24 @@ export function getCover(title, artist) {
 			});
 		});
 	});
+}
+
+if (require.main === module) {
+	const poshett = new PoshettWeb();
+
+	poshett.initServer();
+	poshett.startServer();
+
+	setTimeout(() => {
+		getCover(`I'm so sick`, 'Flyleaf')
+		.then(img => {
+			console.log(img.image);
+			poshett.setCurrentMusic({ imgUrl: img.image });
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+	}, 5000);
 }
 
 module.exports = getCover;
