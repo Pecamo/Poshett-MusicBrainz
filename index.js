@@ -32,20 +32,20 @@ function getCover(title, artist) {
 	return new Promise((resolve, reject) => {
 		nb.search('recording', { recording: title, artist: artist, limit: 3 }, (err, response) => {
 			if (err) {
-				reject(err);
+				return reject(err);
 			}
 
 			const recordings = response.recordings;
 
 			if (response.recordings.length === 0) {
-				reject(`No recording found for title: ${title}, artist: ${artist}`);
+				return reject(`No recording found for title: ${title}, artist: ${artist}`);
 			}
 
 			// TODO Handle other recordings (i.e. _I'm so sick_ by _Flyleaf_)
 			// TODO Use time to select the closest recording
 			let recording = recordings[0];
 			if (typeof recording.releases === 'undefined') {
-				reject(`No release for ${recording.id}`);
+				return reject(`No release for ${recording.id}`);
 			}
 
 			console.log(new Date(recording.length));
@@ -54,7 +54,13 @@ function getCover(title, artist) {
 				let rgid = release['release-group'].id;
 				ca.releaseGroup(rgid, (err, response) => {
 					if (err) {
-						reject(err);
+						if (err.statusCode === 404) {
+							console.warn(`No cover found for release-group: ${rgid}`);
+						} else {
+							console.log(err);
+						}
+
+						return;
 					}
 
 					let images = response.images.sort(sortByTypes);
