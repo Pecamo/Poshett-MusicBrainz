@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "MusicBrainz interface for Poshett",
   "main": "index.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,5 +22,8 @@
     "coverart": "0.0.1",
     "image-size": "^0.7.1",
     "nodebrainz": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^11.9.4"
   }
 }
