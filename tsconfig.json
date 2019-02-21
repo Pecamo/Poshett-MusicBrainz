@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "dist",
     "target": "es5",
     "moduleResolution": "node",
     "resolveJsonModule": true,

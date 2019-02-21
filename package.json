@@ -2,9 +2,13 @@
   "name": "poshett-musicbrainz",
   "version": "1.0.0",
   "description": "MusicBrainz interface for Poshett",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "scripts": {
+    "watch": "tsc -p tsconfig.json -w",
+    "build": "tsc -p tsconfig.json",
+    "start": "node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
