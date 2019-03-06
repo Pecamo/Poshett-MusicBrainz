@@ -1,126 +1,38 @@
-import { Recording, Release, ReleaseGroup, CAType, CAReleaseGroup, CAImage } from "./types";
+import { CoverGetter } from "./CoverGetter";
+import { ApiServer } from "./api";
 
-const NodeBrainz = require('nodebrainz');
-const CoverArt = require('coverart');
 const PoshettWeb = require('../../Poshett-web/dist').default;
-const VERSION = '0.1'
 
-const USER_AGENT = `poshett/${VERSION} (https://github.com/Pecamo/Poshett-MusicBrainz)`;
-const nb = new NodeBrainz({ userAgent: USER_AGENT });
-const ca = new CoverArt({ userAgent: USER_AGENT });
-
-const orderedTypes: CAType[] = [
-	'Track',
-	'Front',
-	'Back',
-	'Medium',
-	'Raw/Unedited',
-	'Booklet',
-	'Tray',
-	'Liner',
-	'Poster'
-];
-
-export function getCover(title: string, artist: string): Promise<CAImage> {
-	return searchRecordings(title, artist)
-	.then(recordings => {
-		let promises: Promise<void | CAImage>[] = [];
-
-		recordings.forEach(recording => {
-			promises = promises.concat(searchReleaseGroup(recording));
-		});
-
-		return Promise.all(promises);
-	})
-	.then((potentialImages: (void | CAImage)[]) => {
-		let images: CAImage[] = potentialImages.filter((image): image is CAImage => !!image);
-
-		images.forEach(image => {
-			console.log(image.types);
-			console.log(image.image);
-		});
-
-		return images[0];
-	})
-}
-
-function sortByTypes(a, b) {
-	return findHigherTypeIndex(a.types) - findHigherTypeIndex(b.types);
-
-	function findHigherTypeIndex(types) {
-		types = types.filter(type => orderedTypes.includes(type));
-		return Math.min(...types.map(type => orderedTypes.indexOf(type)));
-	}
-}
-
-function searchRecordings(title, artist): Promise<Recording[]> {
-	let filters = {
-		recording: title,
-		artist: artist,
-		limit: 3
-	};
-
-	return new Promise((resolve, reject) => {
-		nb.search('recording', filters, (err, response) => {
-			if (err) {
-				reject(err);
-			}
-
-			const recordings: Recording[] = response.recordings;
-
-			if (response.recordings.length === 0) {
-				reject(`No recording found for title: ${title}, artist: ${artist}`);
-			}
-
-			// TODO Handle other recordings (i.e. _I'm so sick_ by _Flyleaf_)
-			// TODO Use time to select the closest recording
-			resolve(recordings);
-		});
-	});
-}
-
-function searchReleaseGroup(recording: Recording): Promise<void | CAImage>[] {
-	if (typeof recording.releases === 'undefined') {
-		console.error(`No release for ${recording.id}`);
-		return [];
-	}
-
-	let promises: Promise<void | CAImage>[] = [];
-
-	recording.releases.forEach((release: Release) => {
-		let rgid = release['release-group'].id;
-		let promise: Promise<void | CAImage> = new Promise<CAImage>((resolve, reject) => {
-			ca.releaseGroup(rgid, (err, response: CAReleaseGroup) => {
-				if (err || !response) {
-					return reject(err);
-				}
-
-				let images = response.images.sort(sortByTypes);
-
-				resolve(images[0]);
-			});
-		})
-		.catch(err => {
-			console.error(err);
-		})
-
-		promises.push(promise);
-	});
-
-	return promises;
-}
-
+// Directly launch from command line
 if (require.main === module) {
 	const poshett = new PoshettWeb();
+	const api = new ApiServer();
 
 	poshett.initServer();
 	poshett.startServer();
 
-	setTimeout(() => {
-		getCover(`Breathe`, 'The Prodigy')
-		.then(img => {
-			console.log(img.image);
-			poshett.setCurrentMusic({ imgUrl: img.image });
-		})
-	}, 100);
+	api.launchServer();
+
+	test(poshett);
+}
+// Imported by another module
+else {
+	module.exports = {
+		CoverGetter,
+		ApiServer
+	};
+}
+
+function test(poshett) {
+	CoverGetter.getCoverByChromaprint(178, 'AQADtEryJUmSLQl2RjtOB-kjD7qUo0qSaMF17FEg3QitB1PC6Hha4gjpXNDCZAhTr-iZUMGZh8NzVJmJZs-CH4-iHPOOH-EnJ0iWNA_eUoI1Z_iHRxYOJjqqbejxlYg7xdAW8sh3VIc_C-cOO8QkNj6e_CjSH3tEksKFmznRHXoe4j96XqDC6riP6jh4Du_x8AmeaT8a8qg8FT_q5UYTpilWHR-XIlJ-VKLwH7kUXB3-DRfepWhCH1UoPELOHfeQ4wmePEITijm06cdpoU6DRlsw7mieothxEt_wBL9FaD_OHRyPb8fheCh3HLroBL-GN9Hhk5C9FPwNi2Hw6viXw8cfrDuOZpRyjO9wJjq0fDG45cbDoeEY9Dihp8If5KgyZQ7C5EpxPNPhDqzBKZ_Q_ELtHHyOuENTov-Ev2iuo3wi4stRheLRTDKOfIOOHDeNRmGiTBGqG73BJNSO3NCUU2jIRbh4SLyg-kR_-GDx6PgjH1WY4kMPfcOEM0P0xMQjwSH14M9xSkidLLigSUeYJBmDv3gaMA_8efBRKctI_DSao47o44pQ_WieolbmIEtYQ9Vu5N7BXFEEJtsTHOUkoVF1xNThL3hncPsC_bhtMDmq57hlqDdyJag4NDx6-BdK4hGS6xnCPEVP8MEZvEQTauioo9IPL0eP6XB8DX0iosFzfIF_9BvyDVr9wUeER5ThB192IkycCPODPhC5C4-1w3U6_OvgE22Hi8WYU2h6oX9EzLmhWJJiNFWG4sePahH7wPKiFCccG3dgC72C6hAdovpygifCH83Z4Th6fnAn4TscS3AiPqjFzOiPZ0b-Q1eP9McjPoS_BT0elEt24T98Bz14vMQlD9dQ6RL84tZxhrCPUC_kC6Fm4TOeHb2D6jmeDj9xPcjPoPnxTseJRg1R6RWuoBmDY5uVQXsUo6FC9EyH_NhzNCn6oc2RpxnqQ0U-KcGPPkLzRXiO6TyaXUZ1pMkTohaJHj-esJhv1AqPfKpwEfmO_tCSZTa-x2BemEe_DzUMH8-hH_4Q-jveo59hlTkqKuB3BMwlfIP44gpgMA9DHR89_AWTHJ3UD8cX5Tq0w0m66Wh-_NAdvOjxgY-KWEsG60i5FjeJizn0eciPPgrenEGnZQF16UGanXhCCz479MGzrEJlMAmd4sQDH89x9eiWHZWXYCfOQw_xB88zfB_c41826DGcJscdozqa41aO8Tgj40eOZu3xH9_xKCRxDyF__JA6IzeFH-2iCk34IWe0aThfaBE1oQ9i7kfzoFpskKFe3HsQyTvEo-cDjTkc-US3UcPIGKcQBlmOH7rwowmXpUJ3YYe_RHgDLcvko-zxOQ4eUQpGFkTz44fIG6WipTgbMMrRlApOjnizQU9l4Uauo4mkJSM6jQ5-uEkWvMGDTJ_x53jeZLgicGi6w8dz4YXDIucO5ygftEeDH_smCpMsRUYY3bghuiny4bngJ_jxCzxblAgTp0dXHrqH_SJy5fAzWBOD_ri0DTuXIz9U8WjkBeF34d1RTzqay8jhXPjDBA9nXId7_PihkcsmPDO-_PgC5zgN8UdPBueh68gPn3g2_DpWRw8qSTCTOggzZikSVJaIpscZSvgRRlsOjQ_yFE0-9EfzYOJq5IemRVngB-mYoxt1xC8-fWh-tDiuRUQziZg-aCeaHbEl4rmNX0Z_eFKGj0GkjCNxQj--t2DED5bGkOiH6uNiPMSDHz5qMcZ7SElQ5dOQH30eCU0yIz43tJMPf3gu-BwR86hiTsNb9KSLtGKOHnpEMRH6aLBR42hG8uiJj8KZD1pq9LiO5kIv4Tl6mrCe4bC0oz-u4_ph98MdCeWN5gyeREaOhmNw1UST9EKO5hn644-gcVmP5sGvoGTQ5MEvtNIOsVtwI7Txq7hzXPOPhhzy4_qga9vg54F5o2WgK3goGTU9wn6MHs-Y4lUOX2yAF-WC5qEM9ePQyOhv_EStgrpg9IwDXUf9oXGDXMSF0CIXNBZBp2mI6hScOHgMrbjwD9GNfjEei3iESCeFKrpkiKeEUEnPBH_wkAruo4ePHmdwSxke5UPXDz1yFLJw9DeOxhQ0OWvRI8yW4hlKa2h4VGIQRtU2_IL2DM0_XEcZk0LzBcp7tDu8Dr3RBw4FvTNWGf3w47egedHRHMd7NM_Rk4OO5oxG9BKeHacmoYeY7vAQ6hvOZEezTKIQ_uA1B32OppVxIyQPJkqWPDiRM-gjFmKRR4kuOLxweEyOsM8V6PIiIRcqboI_VDl23MjzQXuInCXqXdgz-agtIQ1-8Hkg1h8seqgdHu9xHT-mTMZlBmvw_Ag9HpWbZmAyHr-DSUzg6SV64mGO70jGEmEaXFkcNMt4lD-OncWTo_KQJ_ixKdEHjXyDWocfvDPxHsJ_lBIaJz9q_5jvJTiaLCY0DleFI2uPoz_-DI124iO-IG5047mI3mi25ngyHH8gSUvT4RRPHOeOvEKe4_OGJ4fWSUfzRcPFBz-eHr10bNmK3hSe5vgT4cfxMyzk8jiP0Dl89Cee5Atm42SSo09WJD9C_XiYF1e6EEfzozemFFuj5AhbDuqHPA8-Bk_wXQOzo3mOy8gx8yeeZIM95B2FR46I52iqY_oPgYQThAAOmWGAM0EIooJh4CwUghIDDIOEEUPEQIoAApQADgArADBOACCIQMACBQAAiCHhgEBCGAUME0U44ZT0SghEGEYACAmMQUYwIoRFxCBAAEEGAMAQAEwERAQAgDBIpBJIIYMAEEYAZ4gAQDHiiAgKQEGAkoIQYAAAQGLDDBBEKIQEJA4LJZAFAhAEADGIOSEIAk6AQQgCWCCACEDCMEoEEAIFIaBBAACgDCVACKOEAQgQBARTjChhkLEAAKMEAwMZBBRgBgDDBDHAacMQMEIcBoSCRDgjEWECGiCMAYIBBQBgwpAhmEKEAAAFc0AYSoSgxCtDBEIAGKEcEIQYQAEkGAhgACFQIGAEMAx4AAAAzAjIBFGSDCsAAsQKAAABCijCmCQGAIeIkBQwYYgCQEAklRDiWAYOAoIwABRByDCEgEGKCEQAQUAAZhgjECgGHRCCCCcIgQxIogBDijgkhAFAGAQBAQQQMBwzAiEDGKLAIAUEAEAoIBAAQCFJABAAKEYEQcIBDJ0DgAnvgFIEGaIIcIAAgRRiVCBgBBLQGIMIQZAoKyQQyABlEHJEGAKYNcAqYZQEBBjggKBKICKUC8wxZIHAhgFhLCLKCgEEAAIoAQQFQkCAABCGQEIAEQgAIJwyAAGihJGEGMARUAIAIiBgxhwKHvHEIGEQQEghJMAgwAhDuCCCLCaAE4BwIghBDABLBCEGG4GQEQoIppQihgjliADUELCIAIgYIABSxBChqEIECEWQME44wZxRRjBmBBCCAIcEAAQRISkgQCEiDDAIAAEARNSAggwAjghHFCAgUCAgAUQChLASwDAmkGAOCaSIowAAoCApACjgAAJSAISIkJQx4CxCihLGJBDCOAoIAAY')
+	.then(img => {
+		console.log(img.image);
+		poshett.setCurrentMusic({ imgUrl: img.image });
+	})
+
+	CoverGetter.getCoverByTitle(`Breathe`, 'The Prodigy')
+	.then(img => {
+		console.log(img.image);
+		poshett.setCurrentMusic({ imgUrl: img.image });
+	})
 }

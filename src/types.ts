@@ -4,6 +4,27 @@
 
 import DateTimeFormat = Intl.DateTimeFormat;
 
+export type AcoustidRecording = {
+	id: string,
+	sources: number,
+	releasegroups: AcoustidReleaseGroup[]
+};
+
+export type ReleaseGroupType = 'Album' | 'Single' | 'EP' | 'Broadcast' | 'Other';
+
+export type ReleaseGroupSecondaryType = 'Compilation' | 'Soundtrack' | 'Spokenword' | 'Interview' | 'Audiobook' | 'Audio drama' | 'Live' | 'Remix' | 'DJ-mix' | 'Mixtape/Street';
+
+export type AcoustidReleaseGroup = {
+	id: string,
+	title: string,
+	secondarytypes: ReleaseGroupSecondaryType[],
+	type: ReleaseGroupType,
+	artists: [{
+		id: string,
+		name: string
+	}],
+}
+
 export type CAReleaseGroup = {
 	release: string,
 	images: CAImage[];
@@ -178,10 +199,12 @@ export interface ReleaseGroup {
 	id: string;
 	count: number;
 	title: string;
-	'primary-type': string;
+	'primary-type': ReleaseGroupType;
 	'sort-name': string;
 	'artist-credit': Array<{ artist: Artist }>;
 	releases?: Release[];
+	'secondary-types': ReleaseGroupSecondaryType[];
+	'type-id': string;
 }
 
 export interface ArtistMatch extends Artist, Match {
