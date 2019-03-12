@@ -22,16 +22,17 @@
   },
   "homepage": "https://github.com/Pecamo/Poshett-MusicBrainz#readme",
   "dependencies": {
+    "@fnu/poshett-web": "^1.0.1",
     "commander": "^2.19.0",
     "coverart": "0.0.1",
     "express": "^4.16.4",
-    "image-size": "^0.7.1",
+    "image-size": "^0.7.2",
     "nodebrainz": "^2.1.1",
     "request": "^2.88.0"
   },
   "devDependencies": {
     "@types/express": "^4.16.1",
-    "@types/node": "^11.9.4",
+    "@types/node": "^11.11.1",
     "@types/request": "^2.48.1"
   }
 }

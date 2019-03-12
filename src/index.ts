@@ -1,7 +1,7 @@
 import { CoverGetter } from "./CoverGetter";
 import { ApiServer } from "./api";
 
-const PoshettWeb = require('../../Poshett-web/dist').default;
+import PoshettWeb from '@fnu/poshett-web';
 
 // Directly launch from command line
 if (require.main === module) {

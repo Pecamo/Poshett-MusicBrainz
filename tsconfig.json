@@ -6,7 +6,10 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": [
+      "es7"
+    ]
   },
   "exclude": [
     "public",
