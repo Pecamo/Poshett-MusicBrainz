@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/Pecamo/Poshett-MusicBrainz#readme",
   "dependencies": {
-    "@fnu/poshett-web": "^1.0.1",
+    "@fnu/poshett-web": "^1.0.2",
     "commander": "^2.19.0",
     "coverart": "0.0.1",
     "express": "^4.16.4",
