@@ -47,8 +47,8 @@ export type CAType =
 	'Other';
 
 export type CAImage = {
-	edit: 37284546,
-	id: 12750224075,
+	edit: number,
+	id: number,
 	image: string;
 
 	thumbnails: {
